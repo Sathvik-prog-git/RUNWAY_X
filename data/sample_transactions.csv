@@ -1,0 +1,4 @@
+id,date,description,type,amount_inr,status
+1,2025-04-30,Customer Payment,Income,250000,Cleared
+2,2025-04-29,Raw Material Purchase,Expense,-180000,Cleared
+3,2025-04-28,Supplier Payment,Expense,-120000,Cleared

@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root { height: 100%; }
+  body { @apply bg-navy-950 text-slate-100 font-sans antialiased; }
+  *:focus-visible { @apply outline outline-2 outline-offset-2 outline-brand-cyan; }
+}
+
+@layer components {
+  /* Shared glowing panel used by every dashboard widget */
+  .panel {
+    @apply rounded-2xl border border-sky-400/25 bg-card-bg shadow-glow backdrop-blur-sm;
+  }
+  .link-accent { @apply text-sm font-medium text-brand-sky hover:text-brand-cyan transition-colors; }
+}

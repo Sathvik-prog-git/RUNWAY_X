@@ -1,0 +1,2 @@
+# Placeholder. Backend owner: add pinned dependencies when Step 2 begins.
+# Likely: fastapi, uvicorn, pydantic
