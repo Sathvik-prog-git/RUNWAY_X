@@ -1,0 +1,10 @@
+transaction_id,party,type,amount,invoice_date,due_date,payment_date,status
+INV-2026-401,Valid Customer,Incoming,120000,2026-11-01,2026-12-01,,
+INV-2026-401,Duplicate Id Customer,Incoming,50000,2026-11-01,2026-12-01,,
+INV-2026-402,,Incoming,50000,2026-11-01,2026-12-01,,
+INV-2026-403,Bad Amount Co,Incoming,abc,2026-11-01,2026-12-01,,
+INV-2026-404,Bad Type Co,Sideways,50000,2026-11-01,2026-12-01,,
+INV-2026-405,Bad Date Co,Incoming,50000,2026-13-45,2026-12-01,,
+INV-2026-406,Due Before Invoice,Incoming,50000,2026-11-10,2026-11-01,,
+INV-2026-407,Paid Without Date,Incoming,50000,2026-11-01,2026-12-01,,Paid
+INV-2026-001,Already In Table,Incoming,50000,2026-11-01,2026-12-01,,

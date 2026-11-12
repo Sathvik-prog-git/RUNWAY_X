@@ -1,0 +1,6 @@
+transaction_id,party,type,amount,invoice_date,due_date,payment_date,status
+INV-2026-201,Orion Hydraulics Pvt Ltd,Incoming,"₹3,25,000",2026-11-03,2026-12-03,,Pending
+INV-2026-202,Malkajgiri Forgings,Incoming,184000,2026-09-15,2026-10-15,,
+INV-2026-203,Ravi Metal Works,Incoming,97000,2026-10-01,2026-10-31,2026-10-29,Paid
+BILL-2026-301,Southern Coke Suppliers,Outgoing,410000,2026-11-04,2026-12-04,,
+BILL-2026-302,"Gupta & Sons, Packaging",Outgoing,58500,14/10/2026,13/11/2026,,Pending
