@@ -1,2 +1,3 @@
-# Placeholder. Backend owner: add pinned dependencies when Step 2 begins.
-# Likely: fastapi, uvicorn, pydantic
+fastapi==0.115.6
+uvicorn==0.34.0
+argon2-cffi==23.1.0

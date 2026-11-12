@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    strictPort: true, // the backend only accepts requests from http://localhost:5173 — fail loudly instead of switching ports
     proxy: { "/api": { target: "http://localhost:8000", changeOrigin: true } },
   },
 });
