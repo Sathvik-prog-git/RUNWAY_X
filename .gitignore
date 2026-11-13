@@ -16,6 +16,7 @@ venv/
 backend/*.db
 backend/*.db-*
 backend/*.sqlite3
+backend/backups/
 
 # Env / secrets
 .env

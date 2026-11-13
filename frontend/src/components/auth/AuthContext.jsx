@@ -27,6 +27,11 @@ export function AuthProvider({ children }) {
     setState(signedIn(await authApi.login(credentials)));
   }, []);
 
+  /** Create a company account. On success the backend has already signed the new owner in. */
+  const register = useCallback(async (form) => {
+    setState(signedIn(await authApi.register(form)));
+  }, []);
+
   const signOut = useCallback(async () => {
     try {
       await authApi.logout(state.csrfToken);
@@ -38,7 +43,7 @@ export function AuthProvider({ children }) {
     setState(SIGNED_OUT);
   }, [state.csrfToken]);
 
-  const value = useMemo(() => ({ ...state, signIn, signOut }), [state, signIn, signOut]);
+  const value = useMemo(() => ({ ...state, signIn, register, signOut }), [state, signIn, register, signOut]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

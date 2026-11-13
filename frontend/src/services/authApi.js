@@ -51,3 +51,51 @@ export async function logout(csrfToken) {
   const res = await call("/logout", { method: "POST", headers: { "X-CSRF-Token": csrfToken || "" } });
   if (!res.ok) throw new Error(await errorMessage(res));
 }
+
+const REGISTER_FIELDS = {
+  full_name: "fullName", email: "email", password: "password", confirm_password: "confirmPassword",
+  company_name: "companyName", phone: "phone", gstin: "gstin",
+};
+
+/** Error carrying the server's per-field messages (from a 422) so the form can show them next to the fields. */
+export class RegistrationError extends Error {
+  constructor(message, fieldErrors = {}) {
+    super(message);
+    this.fieldErrors = fieldErrors;
+  }
+}
+
+/**
+ * Create a company + its owner account. The backend decides the role (always OWNER) and the company;
+ * this function sends only the form fields. On success the user is already signed in (cookie set).
+ * @returns {Promise<{user: {id:number,email:string,role:string}, csrfToken: string}>}
+ */
+export async function register(form) {
+  const res = await call("/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      full_name: form.fullName,
+      email: form.email,
+      password: form.password,
+      confirm_password: form.confirmPassword,
+      company_name: form.companyName,
+      phone: form.phone,
+      gstin: form.gstin || null,
+    }),
+  });
+  if (res.ok) return res.json();
+  if (res.status === 422) {
+    const fieldErrors = {};
+    try {
+      const body = await res.json();
+      for (const item of Array.isArray(body.detail) ? body.detail : []) {
+        const key = REGISTER_FIELDS[item.loc?.[item.loc.length - 1]];
+        if (key && !fieldErrors[key]) fieldErrors[key] = String(item.msg || "").replace(/^Value error, /, "");
+      }
+    } catch { /* no JSON body */ }
+    throw new RegistrationError("Please fix the highlighted fields and try again.", fieldErrors);
+  }
+  if (res.status === 429) throw new RegistrationError("Too many attempts. Please wait a while and try again.");
+  throw new RegistrationError(await errorMessage(res));
+}

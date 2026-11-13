@@ -2,7 +2,8 @@
 
 Run from the backend folder:  uvicorn main:app --reload --port 8000
 
-Implemented: authentication (/api/auth/login, /api/auth/me, /api/auth/logout).
+Implemented: authentication (/api/auth/login, /api/auth/me, /api/auth/logout) and company
+registration (/api/auth/register).
 Still to come: /api/dashboard, /api/transactions, /api/simulate, /api/interventions.
 """
 from __future__ import annotations
@@ -17,6 +18,7 @@ from fastapi.responses import JSONResponse
 from auth_routes import router as auth_router
 from config import Settings, load_settings
 from db import init_db
+from register_routes import router as register_router
 from security import LoginThrottle
 
 UNSAFE_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
@@ -40,6 +42,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.throttle = LoginThrottle(
         settings.login_max_failures, settings.login_window_minutes * 60, clock=lambda: app.state.clock()
     )
+    # Registration attempts per client IP (in memory): 20 per hour.
+    app.state.register_throttle = LoginThrottle(20, 3600, clock=lambda: app.state.clock())
     allowed = set(settings.allowed_origins)
 
     @app.middleware("http")
@@ -64,6 +68,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
 
     app.include_router(auth_router)
+    app.include_router(register_router)
 
     @app.get("/api/health")
     def health():

@@ -17,6 +17,7 @@ import time
 from auth_service import ROLES, create_user
 from config import load_settings
 from db import connection, init_db
+from migrations import SchemaOutOfDateError
 from schemas import normalize_email
 
 MIN_PASSWORD_LENGTH = 12
@@ -55,7 +56,11 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     settings = load_settings()
-    init_db(settings.database_path)
+    try:
+        init_db(settings.database_path)
+    except SchemaOutOfDateError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 1
     try:
         with connection(settings.database_path) as conn:
             user_id = create_user(conn, email, password, args.role, time.time())

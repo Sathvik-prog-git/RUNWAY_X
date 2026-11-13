@@ -11,6 +11,9 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
 
+import migrations
+
+# Base (version 0) schema. Newer tables/columns (companies, registration fields) come from migrations.py.
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS users (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -58,12 +61,49 @@ def connection(path: str) -> Iterator[sqlite3.Connection]:
         conn.close()
 
 
-def init_db(path: str) -> None:
-    Path(path).parent.mkdir(parents=True, exist_ok=True)
-    conn = connect(path)
+def _readonly_connection(path: str) -> sqlite3.Connection:
+    """A connection that cannot write: used to inspect an existing database without touching it."""
+    return sqlite3.connect(Path(path).resolve().as_uri() + "?mode=ro", uri=True, timeout=10)
+
+
+def _is_new_database(path: str) -> bool:
+    """True only for a missing file, a zero-byte file, or a database with no tables at all."""
+    p = Path(path)
+    if not p.exists() or p.stat().st_size == 0:
+        return True
+    conn = _readonly_connection(path)
     try:
-        conn.execute("PRAGMA journal_mode = WAL")
-        conn.executescript(SCHEMA)
-        conn.commit()
+        return conn.execute("SELECT COUNT(*) FROM sqlite_master").fetchone()[0] == 0
+    finally:
+        conn.close()
+
+
+def init_db(path: str) -> None:
+    """Prepare the database file.
+
+    * Brand-new database (no file, empty file, or no tables): create the base tables, bring them to the
+      latest schema and switch it to WAL mode. This is the only case where anything is written.
+    * Existing database: inspected through a READ-ONLY connection, so nothing in it is modified — no
+      tables, no data and no journal mode. If a migration is still pending this raises
+      SchemaOutOfDateError, telling you to run `python migrate.py upgrade` explicitly.
+    """
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
+    if _is_new_database(path):
+        conn = sqlite3.connect(path, timeout=10, isolation_level=None)  # autocommit: migrations manage their own transaction
+        try:
+            conn.execute("PRAGMA journal_mode = WAL")
+            conn.executescript(SCHEMA)
+            migrations.upgrade(conn)
+        finally:
+            conn.close()
+        return
+    conn = _readonly_connection(path)
+    try:
+        if not migrations.table_exists(conn, "users"):
+            raise migrations.SchemaOutOfDateError(
+                "This database file has tables but no 'users' table, so it does not look like a RUNWAY X database. "
+                "It was left untouched. Check DATABASE_PATH in backend/.env."
+            )
+        migrations.require_current(conn)
     finally:
         conn.close()

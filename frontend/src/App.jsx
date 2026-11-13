@@ -4,13 +4,14 @@ import DashboardPage from "./pages/DashboardPage.jsx";
 import PlaceholderPage from "./pages/PlaceholderPage.jsx";
 import TransactionsPage from "./pages/TransactionsPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
+import RegisterPage from "./pages/RegisterPage.jsx";
 import AuthShell from "./components/auth/AuthShell.jsx";
 import { AuthProvider } from "./components/auth/AuthContext.jsx";
 import ProtectedRoute from "./components/auth/ProtectedRoute.jsx";
 import PublicOnlyRoute from "./components/auth/PublicOnlyRoute.jsx";
 import { NAV_ITEMS } from "./components/layout/navItems.js";
 
-// Stand-in for signed-out pages that are not built yet (register, forgot password).
+// Stand-in for signed-out pages that are not built yet (forgot password).
 const AuthPlaceholder = ({ title }) => (
   <AuthShell>
     <PlaceholderPage title={title} />
@@ -29,7 +30,8 @@ export default function App() {
         <Route element={<PublicOnlyRoute />}>
           <Route path="login" element={<LoginPage />} />
         </Route>
-        <Route path="register" element={<AuthPlaceholder title="Create Company Account" />} />
+        {/* /register handles "already signed in" itself so it can show its success message after sign-up. */}
+        <Route path="register" element={<RegisterPage />} />
         <Route path="forgot-password" element={<AuthPlaceholder title="Forgot Password" />} />
 
         {/* Everything below requires a signed-in user; others are redirected to /login. */}

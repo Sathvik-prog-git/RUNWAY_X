@@ -1,6 +1,6 @@
 # RUNWAY X backend (authentication)
 
-FastAPI + SQLite (local) + Argon2. Endpoints: `POST /api/auth/login`, `GET /api/auth/me`, `POST /api/auth/logout`, `GET /api/health`.
+FastAPI + SQLite (local) + Argon2. Endpoints: `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`, `POST /api/auth/logout`, `GET /api/health`.
 
 ## First-time setup (Windows PowerShell)
 
@@ -55,3 +55,17 @@ Open http://localhost:5173 (the port is fixed; the backend only accepts requests
 ```powershell
 curl.exe -i -X POST http://localhost:8000/api/auth/login -H "Content-Type: application/json" -H "Origin: http://localhost:5173" -d "{\"email\":\"you@example.com\",\"password\":\"...\"}"
 ```
+
+## Company registration and database migrations
+
+`POST /api/auth/register` creates a company and its OWNER user in one transaction and signs the owner in. The role is always OWNER and the company is always new; unknown fields (`role`, `company_id`, …) are rejected with 422.
+
+An existing database is **never** migrated by starting the server. If a migration is pending the server refuses to start and tells you to run it yourself. Always run these from the `backend` folder, with the backend stopped:
+
+```powershell
+python migrate.py status       # what is applied / pending
+python migrate.py rehearse     # runs the migration on a throw-away copy; your real database is untouched
+python migrate.py upgrade      # verified backup (into backend\backups), then migrates; asks you to type YES
+```
+
+Backups use SQLite's backup API, so changes still sitting in the WAL file are included. Each backup is verified by comparing the complete schema and every table's complete data (byte for byte) with the source; after an upgrade every table that existed before is compared with the backup again. Starting the server only reads an existing database (read-only) and never changes its journal mode. Migrations are safe to re-run. To restore, stop the backend and copy the backup file over `runway_dev.db` (delete any leftover `runway_dev.db-wal` / `-shm` first).
